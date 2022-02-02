@@ -1,16 +1,16 @@
-import { useQuery } from "react-query";
+import { useQuery } from 'react-query';
 import {
-  Switch,
+  Link,
+  Routes,
   Route,
   useLocation,
   useParams,
-  useRouteMatch,
-} from "react-router-dom";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-import { fetchCoinInfo, fetchCoinTickers } from "../api";
-import Chart from "./Chart";
-import Price from "./Price";
+  useMatch,
+} from 'react-router-dom';
+import styled from 'styled-components';
+import { fetchCoinInfo, fetchCoinTickers } from '../api';
+import Chart from './Chart';
+import Price from './Price';
 
 const Title = styled.h1`
   font-size: 48px;
@@ -88,11 +88,8 @@ const BackBtn = styled.div`
   cursor: pointer;
 `;
 
-interface RouteParams {
-  coinId: string;
-}
 interface RouteState {
-  name: string;
+  state: { name: string };
 }
 interface InfoData {
   id: string;
@@ -149,24 +146,24 @@ interface PriceData {
 }
 
 function Coin() {
-  const { coinId } = useParams<RouteParams>();
-  const { state } = useLocation<RouteState>();
-  const priceMatch = useRouteMatch("/:coinId/price");
-  const chartMatch = useRouteMatch("/:coinId/chart");
+  const { coinId } = useParams();
+  const { state } = useLocation() as RouteState;
+  const priceMatch = useMatch('/:coinId/price');
+  const chartMatch = useMatch('/:coinId/chart');
   const { isLoading: infoLoading, data: infoData } = useQuery<InfoData>(
-    ["info", coinId],
-    () => fetchCoinInfo(coinId)
+    ['info', coinId],
+    () => fetchCoinInfo(coinId!)
   );
   const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
-    ["tickers", coinId],
-    () => fetchCoinTickers(coinId)
+    ['tickers', coinId],
+    () => fetchCoinTickers(coinId!)
   );
   const loading = infoLoading || tickersLoading;
   return (
     <Container>
       <Header>
         <Title>
-          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+          {state?.name ? state.name : loading ? 'Loading...' : infoData?.name}
         </Title>
       </Header>
       {loading ? (
@@ -183,8 +180,8 @@ function Coin() {
               <span>${infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
-              <span>Open Source:</span>
-              <span>{infoData?.open_source ? "Yes" : "No"}</span>
+              <span>Price:</span>
+              <span>${tickersData?.quotes?.USD?.price?.toFixed(3)}</span>
             </OverviewItem>
           </Overview>
           <Description>{infoData?.description}</Description>
@@ -208,18 +205,12 @@ function Coin() {
             </Tab>
           </Tabs>
 
-          <Switch>
-            <Route path={`/:coinId/price`}>
-              <Price coinId={coinId} />
-            </Route>
-            <Route path={`/:coinId/chart`}>
-              <Chart coinId={coinId} />
-            </Route>
-          </Switch>
+          <Routes>
+            <Route path='chart' element={<Chart coinId={coinId!} />} />
+            <Route path='price' element={<Price coinId={coinId!} />} />
+          </Routes>
           <BackBtn>
-            <Link to="/">
-              HOME
-            </Link>
+            <Link to='/'>HOME</Link>
           </BackBtn>
         </>
       )}

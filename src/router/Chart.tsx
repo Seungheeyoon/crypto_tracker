@@ -1,7 +1,9 @@
-import React from "react";
-import { useQuery } from "react-query";
-import { fetchCoinHistory } from "../api";
-import ApexChart from "react-apexcharts";
+import React from 'react';
+import { useQuery } from 'react-query';
+import { fetchCoinHistory } from '../api';
+import ApexChart from 'react-apexcharts';
+import { useRecoilValue } from 'recoil';
+import { isDarkAtom } from '../atoms';
 
 interface IHistorical {
   time_open: string;
@@ -19,20 +21,21 @@ interface ChartProps {
 }
 
 const Chart = ({ coinId }: ChartProps) => {
-  const { isLoading, data } = useQuery<IHistorical[]>(["ohlc", coinId], () =>
+  const isDark = useRecoilValue(isDarkAtom);
+  const { isLoading, data } = useQuery<IHistorical[]>(['ohlc', coinId], () =>
     fetchCoinHistory(coinId)
   );
 
   return (
     <div>
       {isLoading ? (
-        "Loading chart..."
+        'Loading chart...'
       ) : (
         <ApexChart
-          type="candlestick"
+          type='candlestick'
           series={[
             {
-              name: "price",
+              name: 'price',
               data: data?.map((price) => [
                 new Date(price.time_open).getTime(),
                 [price.open, price.high, price.low, price.close],
@@ -41,7 +44,7 @@ const Chart = ({ coinId }: ChartProps) => {
           ]}
           options={{
             theme: {
-              mode: "dark",
+              mode: 'dark',
             },
             chart: {
               height: 300,
@@ -49,7 +52,7 @@ const Chart = ({ coinId }: ChartProps) => {
               toolbar: {
                 show: false,
               },
-              background: "transparent",
+              background: 'transparent',
             },
             grid: {
               show: false,
@@ -61,7 +64,7 @@ const Chart = ({ coinId }: ChartProps) => {
               axisBorder: { show: false },
               axisTicks: { show: false },
               labels: { show: false },
-              type: "datetime",
+              type: 'datetime',
               categories: data?.map((price) => price.time_close),
             },
             tooltip: {
